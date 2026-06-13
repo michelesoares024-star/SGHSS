@@ -34,3 +34,12 @@ def home():
         "sistema": "SGHSS",
         "status": "online"
     }
+
+@app.get("/health")
+def health():
+
+    return {
+        "status": "ok",
+        "api": "SGHSS",
+        "database": "online"
+    }
