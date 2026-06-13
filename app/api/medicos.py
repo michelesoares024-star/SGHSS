@@ -5,8 +5,10 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.logger import logger
 
 from app.models.medico import Medico
+from app.models.consulta import Consulta
 
 from app.schemas.medico import (
     MedicoCreate,
@@ -90,5 +92,37 @@ def criar_medico(
     db.refresh(
         novo_medico
     )
+    logger.info(
+        f"Médico criado: {novo_medico.nome}"
+    )
+
 
     return novo_medico
+
+@router.get(
+    "/{id}/consultas"
+)
+def agenda_medico(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    medico = db.query(
+        Medico
+    ).filter(
+        Medico.id == id
+    ).first()
+
+    if not medico:
+        raise HTTPException(
+            status_code=404,
+            detail="Médico não encontrado"
+        )
+
+    consultas = db.query(
+        Consulta
+    ).filter(
+        Consulta.medico_id == id
+    ).all()
+
+    return consultas

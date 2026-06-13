@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.logger import logger
 from app.models.paciente import Paciente
+from app.models.consulta import Consulta
 from app.schemas.paciente import (
     PacienteCreate,
     PacienteResponse
@@ -147,3 +148,31 @@ def excluir_paciente(
     return {
         "mensagem": "Paciente excluído com sucesso"
     }
+
+@router.get(
+    "/{id}/consultas"
+)
+def historico_paciente(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    paciente = db.query(
+        Paciente
+    ).filter(
+        Paciente.id == id
+    ).first()
+
+    if not paciente:
+        raise HTTPException(
+            status_code=404,
+            detail="Paciente não encontrado"
+        )
+
+    consultas = db.query(
+        Consulta
+    ).filter(
+        Consulta.paciente_id == id
+    ).all()
+
+    return consultas
