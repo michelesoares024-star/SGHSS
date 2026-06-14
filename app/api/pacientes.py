@@ -7,6 +7,8 @@ from app.core.database import get_db
 from app.core.logger import logger
 from app.models.paciente import Paciente
 from app.models.consulta import Consulta
+from app.models.prontuario import Prontuario
+from app.models.exame import Exame
 from app.schemas.paciente import (
     PacienteCreate,
     PacienteResponse
@@ -176,3 +178,96 @@ def historico_paciente(
     ).all()
 
     return consultas
+
+@router.get(
+    "/{id}/prontuario"
+)
+def buscar_prontuario_paciente(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    paciente = db.query(Paciente).filter(
+        Paciente.id == id
+    ).first()
+
+    if not paciente:
+        raise HTTPException(
+            status_code=404,
+            detail="Paciente não encontrado"
+        )
+
+    prontuario = db.query(Prontuario).filter(
+        Prontuario.paciente_id == id
+    ).first()
+
+    if not prontuario:
+        raise HTTPException(
+            status_code=404,
+            detail="Prontuário não encontrado"
+        )
+
+    return prontuario
+
+
+@router.get(
+    "/{id}/exames"
+)
+def listar_exames_paciente(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    paciente = db.query(Paciente).filter(
+        Paciente.id == id
+    ).first()
+
+    if not paciente:
+        raise HTTPException(
+            status_code=404,
+            detail="Paciente não encontrado"
+        )
+
+    exames = db.query(Exame).filter(
+        Exame.paciente_id == id
+    ).all()
+
+    return exames
+
+
+@router.get(
+    "/{id}/historico"
+)
+def historico_completo_paciente(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    paciente = db.query(Paciente).filter(
+        Paciente.id == id
+    ).first()
+
+    if not paciente:
+        raise HTTPException(
+            status_code=404,
+            detail="Paciente não encontrado"
+        )
+
+    consultas = db.query(Consulta).filter(
+        Consulta.paciente_id == id
+    ).all()
+
+    prontuario = db.query(Prontuario).filter(
+        Prontuario.paciente_id == id
+    ).first()
+
+    exames = db.query(Exame).filter(
+        Exame.paciente_id == id
+    ).all()
+
+    return {
+        "paciente": paciente,
+        "consultas": consultas,
+        "prontuario": prontuario,
+        "exames": exames
+    }
