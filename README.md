@@ -103,3 +103,35 @@ Swagger:
 ```text
 http://127.0.0.1:8000/docs
 ```
+
+Segurança e LGPD
+
+O SGHSS foi desenvolvido seguindo princípios básicos da Lei Geral de Proteção de Dados (LGPD).
+
+Medidas implementadas:
+
+Registro de logs para auditoria.
+Controle de integridade dos dados através do banco SQLite.
+Organização modular para futura implementação de autenticação e autorização.
+Separação entre modelos, schemas e APIs.
+Tratamento de erros utilizando HTTPException.
+
+Limitações da versão acadêmica:
+
+Não possui autenticação por usuário.
+Não possui criptografia avançada de dados sensíveis.
+Não possui gestão de consentimento dos titulares.
+Não possui anonimização de dados.
+
+Essas funcionalidades podem ser implementadas em versões futuras do sistema.
+
+Funcionalidades Futuras
+Controle de acesso por perfil.
+Gestão de leitos hospitalares.
+Controle financeiro.
+Gestão de suprimentos.
+Integração com serviços de telemedicina.
+Criptografia avançada de dados.
+Adequação completa à LGPD.
+Dashboard administrativo.
+Multiunidades hospitalares.
