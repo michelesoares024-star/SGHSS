@@ -32,6 +32,30 @@ def listar_enfermeiros(
     ).all()
 
 
+@router.get(
+    "/{id}",
+    response_model=EnfermeiroResponse
+)
+def buscar_enfermeiro(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    enfermeiro = db.query(
+        Enfermeiro
+    ).filter(
+        Enfermeiro.id == id
+    ).first()
+
+    if not enfermeiro:
+        raise HTTPException(
+            status_code=404,
+            detail="Enfermeiro não encontrado"
+        )
+
+    return enfermeiro
+
+
 @router.post(
     "/",
     response_model=EnfermeiroResponse,
@@ -76,3 +100,78 @@ def criar_enfermeiro(
     )
 
     return novo_enfermeiro
+
+
+@router.put(
+    "/{id}",
+    response_model=EnfermeiroResponse
+)
+def atualizar_enfermeiro(
+    id: int,
+    dados: EnfermeiroCreate,
+    db: Session = Depends(get_db)
+):
+
+    enfermeiro = db.query(
+        Enfermeiro
+    ).filter(
+        Enfermeiro.id == id
+    ).first()
+
+    if not enfermeiro:
+        raise HTTPException(
+            status_code=404,
+            detail="Enfermeiro não encontrado"
+        )
+
+    enfermeiro.nome = dados.nome
+    enfermeiro.coren = dados.coren
+    enfermeiro.telefone = dados.telefone
+    enfermeiro.email = dados.email
+
+    db.commit()
+
+    db.refresh(
+        enfermeiro
+    )
+
+    logger.info(
+        f"Enfermeiro atualizado: {id}"
+    )
+
+    return enfermeiro
+
+
+@router.delete(
+    "/{id}"
+)
+def excluir_enfermeiro(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    enfermeiro = db.query(
+        Enfermeiro
+    ).filter(
+        Enfermeiro.id == id
+    ).first()
+
+    if not enfermeiro:
+        raise HTTPException(
+            status_code=404,
+            detail="Enfermeiro não encontrado"
+        )
+
+    db.delete(
+        enfermeiro
+    )
+
+    db.commit()
+
+    logger.info(
+        f"Enfermeiro excluído: {id}"
+    )
+
+    return {
+        "mensagem": "Enfermeiro excluído com sucesso"
+    }

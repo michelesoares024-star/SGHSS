@@ -28,10 +28,33 @@ router = APIRouter(
 def listar_prescricoes(
     db: Session = Depends(get_db)
 ):
-
     return db.query(
         Prescricao
     ).all()
+
+
+@router.get(
+    "/{id}",
+    response_model=PrescricaoResponse
+)
+def buscar_prescricao(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    prescricao = db.query(
+        Prescricao
+    ).filter(
+        Prescricao.id == id
+    ).first()
+
+    if not prescricao:
+        raise HTTPException(
+            status_code=404,
+            detail="Prescrição não encontrada"
+        )
+
+    return prescricao
 
 
 @router.post(
@@ -78,3 +101,90 @@ def criar_prescricao(
     )
 
     return nova_prescricao
+
+
+@router.put(
+    "/{id}",
+    response_model=PrescricaoResponse
+)
+def atualizar_prescricao(
+    id: int,
+    dados: PrescricaoCreate,
+    db: Session = Depends(get_db)
+):
+
+    prescricao = db.query(
+        Prescricao
+    ).filter(
+        Prescricao.id == id
+    ).first()
+
+    if not prescricao:
+        raise HTTPException(
+            status_code=404,
+            detail="Prescrição não encontrada"
+        )
+
+    consulta = db.query(
+        Consulta
+    ).filter(
+        Consulta.id == dados.consulta_id
+    ).first()
+
+    if not consulta:
+        raise HTTPException(
+            status_code=404,
+            detail="Consulta não encontrada"
+        )
+
+    prescricao.data = dados.data
+    prescricao.medicamento = dados.medicamento
+    prescricao.orientacoes = dados.orientacoes
+    prescricao.consulta_id = dados.consulta_id
+
+    db.commit()
+
+    db.refresh(
+        prescricao
+    )
+
+    logger.info(
+        f"Prescrição atualizada: {id}"
+    )
+
+    return prescricao
+
+
+@router.delete(
+    "/{id}"
+)
+def excluir_prescricao(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    prescricao = db.query(
+        Prescricao
+    ).filter(
+        Prescricao.id == id
+    ).first()
+
+    if not prescricao:
+        raise HTTPException(
+            status_code=404,
+            detail="Prescrição não encontrada"
+        )
+
+    db.delete(
+        prescricao
+    )
+
+    db.commit()
+
+    logger.info(
+        f"Prescrição excluída: {id}"
+    )
+
+    return {
+        "mensagem": "Prescrição excluída com sucesso"
+    }

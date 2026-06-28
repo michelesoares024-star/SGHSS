@@ -28,10 +28,33 @@ router = APIRouter(
 def listar_teleconsultas(
     db: Session = Depends(get_db)
 ):
-
     return db.query(
         Teleconsulta
     ).all()
+
+
+@router.get(
+    "/{id}",
+    response_model=TeleconsultaResponse
+)
+def buscar_teleconsulta(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    teleconsulta = db.query(
+        Teleconsulta
+    ).filter(
+        Teleconsulta.id == id
+    ).first()
+
+    if not teleconsulta:
+        raise HTTPException(
+            status_code=404,
+            detail="Teleconsulta não encontrada"
+        )
+
+    return teleconsulta
 
 
 @router.post(
@@ -77,3 +100,89 @@ def criar_teleconsulta(
     )
 
     return nova_teleconsulta
+
+
+@router.put(
+    "/{id}",
+    response_model=TeleconsultaResponse
+)
+def atualizar_teleconsulta(
+    id: int,
+    dados: TeleconsultaCreate,
+    db: Session = Depends(get_db)
+):
+
+    teleconsulta = db.query(
+        Teleconsulta
+    ).filter(
+        Teleconsulta.id == id
+    ).first()
+
+    if not teleconsulta:
+        raise HTTPException(
+            status_code=404,
+            detail="Teleconsulta não encontrada"
+        )
+
+    consulta = db.query(
+        Consulta
+    ).filter(
+        Consulta.id == dados.consulta_id
+    ).first()
+
+    if not consulta:
+        raise HTTPException(
+            status_code=404,
+            detail="Consulta não encontrada"
+        )
+
+    teleconsulta.teleconsulta = dados.teleconsulta
+    teleconsulta.link = dados.link
+    teleconsulta.consulta_id = dados.consulta_id
+
+    db.commit()
+
+    db.refresh(
+        teleconsulta
+    )
+
+    logger.info(
+        f"Teleconsulta atualizada: {id}"
+    )
+
+    return teleconsulta
+
+
+@router.delete(
+    "/{id}"
+)
+def excluir_teleconsulta(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    teleconsulta = db.query(
+        Teleconsulta
+    ).filter(
+        Teleconsulta.id == id
+    ).first()
+
+    if not teleconsulta:
+        raise HTTPException(
+            status_code=404,
+            detail="Teleconsulta não encontrada"
+        )
+
+    db.delete(
+        teleconsulta
+    )
+
+    db.commit()
+
+    logger.info(
+        f"Teleconsulta excluída: {id}"
+    )
+
+    return {
+        "mensagem": "Teleconsulta excluída com sucesso"
+    }

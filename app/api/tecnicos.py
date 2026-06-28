@@ -32,6 +32,30 @@ def listar_tecnicos(
     ).all()
 
 
+@router.get(
+    "/{id}",
+    response_model=TecnicoResponse
+)
+def buscar_tecnico(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    tecnico = db.query(
+        Tecnico
+    ).filter(
+        Tecnico.id == id
+    ).first()
+
+    if not tecnico:
+        raise HTTPException(
+            status_code=404,
+            detail="Técnico não encontrado"
+        )
+
+    return tecnico
+
+
 @router.post(
     "/",
     response_model=TecnicoResponse,
@@ -61,14 +85,93 @@ def criar_tecnico(
         email=tecnico.email
     )
 
-    db.add(novo_tecnico)
+    db.add(
+        novo_tecnico
+    )
 
     db.commit()
 
-    db.refresh(novo_tecnico)
+    db.refresh(
+        novo_tecnico
+    )
 
     logger.info(
         f"Técnico criado: {novo_tecnico.nome}"
     )
 
     return novo_tecnico
+
+
+@router.put(
+    "/{id}",
+    response_model=TecnicoResponse
+)
+def atualizar_tecnico(
+    id: int,
+    dados: TecnicoCreate,
+    db: Session = Depends(get_db)
+):
+
+    tecnico = db.query(
+        Tecnico
+    ).filter(
+        Tecnico.id == id
+    ).first()
+
+    if not tecnico:
+        raise HTTPException(
+            status_code=404,
+            detail="Técnico não encontrado"
+        )
+
+    tecnico.nome = dados.nome
+    tecnico.registro = dados.registro
+    tecnico.telefone = dados.telefone
+    tecnico.email = dados.email
+
+    db.commit()
+
+    db.refresh(
+        tecnico
+    )
+
+    logger.info(
+        f"Técnico atualizado: {id}"
+    )
+
+    return tecnico
+
+
+@router.delete(
+    "/{id}"
+)
+def excluir_tecnico(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    tecnico = db.query(
+        Tecnico
+    ).filter(
+        Tecnico.id == id
+    ).first()
+
+    if not tecnico:
+        raise HTTPException(
+            status_code=404,
+            detail="Técnico não encontrado"
+        )
+
+    db.delete(
+        tecnico
+    )
+
+    db.commit()
+
+    logger.info(
+        f"Técnico excluído: {id}"
+    )
+
+    return {
+        "mensagem": "Técnico excluído com sucesso"
+    }
